@@ -33,14 +33,12 @@
                     </form>
                 </div>
             </div>
-            @if(!Auth::user()->referred_by)
                 <div class="panel panel-default">
                     <div class="panel-heading">Referral Link</div>
                     <div class="panel-body">
                         <a href="{{url('/register').'?ref='.Auth::user()->referral_id}}">{{url('/register').'?ref='.Auth::user()->referral_id}}</a>
                     </div>
                 </div>
-            @endif
         </div>
     </div>
 </div>

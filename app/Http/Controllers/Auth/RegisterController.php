@@ -65,7 +65,11 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        $referred_by = $_COOKIE['referral'];
+        if (isset($_COOKIE['referral'])) {
+            $referred_by = $_COOKIE['referral'];
+        } else {
+            $referred_by = null;
+        }
 
         return User::create([
             'name' => $data['name'],
