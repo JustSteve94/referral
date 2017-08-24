@@ -15,12 +15,13 @@
             <div class="panel panel-default">
                 <div class="panel-heading">Balance</div>
                 <div class="panel-body">
-                    <form method="PATCH" action="/addmoney" class="form-horizontal">
+                    <form method="POST" class="form-horizontal" action="{{url('/')}}/balance/{{Auth::user()->id}}">
                         {{ csrf_field() }}
+                        {{ method_field('PATCH') }}
                         <div class="form form-group">
-                            <label for="Amount" class="col-md-4 control-label">Amount</label>
+                            <label for="amount" class="col-md-4 control-label">Amount</label>
                             <div class="col-md-6">
-                                <input type="text" class="form-control" id="Amount">
+                                <input id="amount" type="number" class="form-control" name="amount" value="10">
                             </div>
                         </div>
                         <div class="form-group">
@@ -30,6 +31,15 @@
                                 </button>
                             </div>
                         </div>
+
+                        <div class="flash-message">
+                            @foreach (['danger', 'warning', 'success', 'info'] as $msg)
+                              @if(Session::has('alert-' . $msg))
+
+                              <p class="alert alert-{{ $msg }}">{{ Session::get('alert-' . $msg) }} <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a></p>
+                              @endif
+                            @endforeach
+                        </div> <!-- end .flash-message -->
                     </form>
                 </div>
             </div>

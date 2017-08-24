@@ -19,4 +19,4 @@ Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
 
-Route::post('/addmoney', 'BalanceController@store');
+Route::resource('/balance', 'BalanceController');
