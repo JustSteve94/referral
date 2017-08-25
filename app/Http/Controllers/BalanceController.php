@@ -92,53 +92,52 @@ class BalanceController extends Controller
     public function makeDeposit(Request $request) {
         $amount = $request->amount;
 
-        $user_deposit = Auth::user()->amount;
+        $user = Auth::user();
 
-        $referralChildID = Auth::user()->referred_by;
+        $this->checkReferral($amount, $user);
 
-        if ($referralChildID) {
-            $percentage = 0.1 * $amount;// REPEATED
-            $amount -= $percentage;// REPEATED
-            
-            $referralParent = User::where('referral_id', $referralChildID)->first();// REPEATED
-            $referralParentID = $referralParent->referred_by;
-            if ($referralParentID) {
-                $referralGrandParent = User::where('referral_id', $referralParentID)->first();// REPEATED
-                $percentage2 = 0.1 * $percentage; // REPEATED
-                $percentage -= $percentage2;// REPEATED
-                $grandParentAmount = $referralGrandParent->amount;// REPEATED
-                $grandParentAmount += $percentage2;
-                $referralGrandParent->update(['amount' => $grandParentAmount]);
-            }
-            $parentAmount = $referralParent->amount;// REPEATED
-            $parentAmount += $percentage;
-            $referralParent->update(['amount' => $parentAmount]);
-        }
-
-        $user_deposit += $amount;
-        // store
-        Auth::user()->update(['amount' => $user_deposit]);
-
-        // redirect
         $request->session()->flash('alert-success', 'Deposit was successfully made!' );
     }
 
-    public function checkReferral(int $amount) {
-        $user_referred_by = Auth::user()->referred_by;
+    public function checkReferral(int $amount, User $user, $counter=0) {
+        $user_referred_by = $user->referred_by;
+        $counter++;
 
         if ($user_referred_by) {
-            $arr[] = $this->applyReferralTax($amount);
+            $tax = $this->applyReferralTax($amount);
+            
+            $this->updateUserDeposit($user, $amount);
+
+            $user_parent = $this->findUserReferral($user_referred_by);
+            
+            if ($counter <= 1) {
+                $this->checkReferral($tax, $user_parent, $counter);
+            } else {
+                $this->updateUserDeposit($user_parent, $tax);
+            }
+        } else {
+            $this->updateUserDeposit($user, $amount);
         }
     }
 
-    public function applyReferralTax(int $amount) {
+    public function applyReferralTax(&$amount) {
         $tax_amount = 0.1 * $amount;
         $amount -= $tax_amount;
 
-        return array($tax_amount, $amount); // final sum of money palced in account
+        return $tax_amount; // final sum of money palced in account
     }
 
+    public function findUserReferral($user_referred_by) {
+        $user_referral = User::where('referral_id', $user_referred_by)->first();
 
+        return $user_referral;
+    }
+
+    public function updateUserDeposit(User $user, $amount) {
+        $user_deposit = $user->amount;
+        $user_deposit += $amount;
+        $user->update(['amount' => $user_deposit]);
+    }
 
     /**
      * Remove the specified resource from storage.
